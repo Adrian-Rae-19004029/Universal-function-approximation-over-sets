@@ -28,16 +28,22 @@ class CollectionGenerator:
         else:
             self._sampling_function = lambda: random.randint(self._lower_bound, self._upper_bound)
 
-    def create_collection(self, n=5):
+    def create_collection(self, n=5, max_elements=100, mask_value=None):
         """
-        Creates a collection of specified size according to the established sampling strategy
+        Creates a collection of maximum_elements size, where n trailing elements are to be used for computation and
+        are sampled according to the generator's sampling strategy.
 
-        :param n: The desired number of set elements
+        :param mask_value: A generated value which is to be ignored (padding)
+        :param max_elements: The number of elements the collection holds
+        :param n: The desired number of set elements which are used for computation
         :return: A list of n elements.
         Note here that a list is preferred over a 'set' proper as we permit multi-sets containing non-distinct elements as 'sets' for our purposes
         """
 
-        # n is a positive integer
+        # n and max are both strictly ordered, positive integers
         assert n > 0
+        assert max_elements >= n
 
-        return np.array([self._sampling_function() for _ in range(n)])
+        n_padding = max_elements - n
+
+        return np.array([mask_value for _ in range(n_padding)]+[self._sampling_function() for _ in range(n)])

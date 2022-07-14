@@ -1,5 +1,7 @@
 import random
 
+import numpy as np
+
 from datasets.generator.CollectionGenerator import CollectionGenerator
 
 
@@ -22,18 +24,26 @@ class DatasetGenerator:
         # Assign the labelling function
         self._labelling_function = labelling_function
 
-    def get_training_set(self, n=10 ** 5, upper=10):
+    def get_training_set(self, n=10 ** 5, upper=10, mask_value=None):
         """
-        Produces a training set according to the desired specifications. Each collection can vary in size, but is bounded above
+        Produces a training set according to the desired specifications. Each collection can vary in size, but is
+        bounded above but an upper limit
 
+        :param mask_value: A value to be ignored during computations
         :param n: The number of collections in the training set
         :param upper: The maximum number of elements in each collection
         :return: A tuple (C,L) of collections C and their labels L
         """
         # The size of a collection in the training set varies, but is bounded above by 'upper'
         # A near uniform amount of sets of each size is produced.
-        collections = [self._generator.create_collection(random.randint(1, upper)) for _ in range(n)]
-        labels = [self._labelling_function(feat) for feat in collections]
+        collections = np.array([
+            self._generator.create_collection(n=random.randint(1, upper), max_elements=upper, mask_value=mask_value)
+            for _ in range(n)
+        ])
+
+        labels = np.array([
+            self._labelling_function(feat) for feat in collections
+        ])
 
         return collections, labels
 
@@ -46,7 +56,12 @@ class DatasetGenerator:
         :return: A tuple (C,L) of collections C and their labels L
         """
         # The size of a collection in the is fixed to be 'size'
-        collections = [self._generator.create_collection(size) for _ in range(n)]
-        labels = [self._labelling_function(feat) for feat in collections]
+        collections = np.array([
+            self._generator.create_collection(n=size, max_elements=size)
+            for _ in range(n)
+        ])
 
+        labels = np.array([
+            self._labelling_function(feat) for feat in collections
+        ])
         return collections, labels
